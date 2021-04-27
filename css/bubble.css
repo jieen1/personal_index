@@ -1,0 +1,57 @@
+.bubble{
+	width: 9em;
+	height: 9em;
+	border-radius: 50%;
+	transform-style: preserve-3d;
+	position: absolute;
+	display: block;
+	text-align: center;
+	"z-index": 99999999;
+}
+.bubble:hover{
+	width: 10em;
+	height: 10em;
+}
+
+.bubble svg{
+	display: block;
+	margin: 2.15em auto 2.15em auto;
+	transition: width 0.1s linear, height 0.1s linear;
+	line-height: 1.5;
+	x: 0px;
+	y: 0px;
+}
+.bubble a { 
+    box-shadow: 0 0 0 0.1em #00ccff inset, 0 0 1em #0cf inset;
+    color: currentColor;
+    display: inline-block;
+    text-decoration: none;
+    transition: transform 0.4s linear, box-shadow 0.15s linear, margin 0.1s linear, width 0.1s linear, height 0.1s linear;
+	width: 100%;
+	height: 100%;
+	border-radius: 50%;
+}
+.bubble a:before {
+    background-color: #fff;
+    border-radius: 50%;
+    content: "";
+    display: block;
+    opacity: 0.7;
+    position: absolute;
+    top: 20%;
+    left: 20%;
+    width: 1em;
+    height: 0.5em;
+    transform: rotate(-45deg);
+}
+
+.bubble a:hover svg {
+  width: 5.1rem;
+  height: 5.1em;
+}
+
+.bubble span{
+	font-weight: bold;
+	margin-top: 45%;
+	display: block;
+}

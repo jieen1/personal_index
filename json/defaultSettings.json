@@ -1,0 +1,24 @@
+{
+	"tags":[
+		{
+			"name":"百度一下",
+			"url":"https://www.baidu.com"
+		},
+		{
+			"name":"哔哩哔哩",
+			"url":"https://www.bilibili.com"
+		},
+		{
+			"name":"Google",
+			"url":"https://www.google.com"
+		},
+		{
+			"name":"CSDN",
+			"url":"https://www.csdn.net"
+		},
+		{
+			"name":"Stack Overflow",
+			"url":"https://stackoverflow.com"
+		}
+	]
+}

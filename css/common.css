@@ -1,0 +1,120 @@
+* {
+	margin: 0;
+	padding: 0
+}
+
+li {
+	list-style: none
+}
+
+img {
+	vertical-align: top;
+	border: none
+}
+
+/* 设置默认字体 */
+body,button,input,select,textarea {
+	font: "lucida console",/1 Tahoma, Helvetica, Arial, "\5b8b\4f53", sans-serif;/* 用 ascii 字符表示，使得在任何编码下都无问题 */
+}
+
+h1 {
+	font-size: 18px;
+}
+
+h2 {
+	font-size: 16px;
+}
+
+h3 {
+	font-size: 14px;
+}
+
+h4,h5,h6 {
+	font-size: 100%;
+}
+
+address,cite,dfn,em,var {
+	font-style: normal;
+}
+
+/* 将斜体扶正 */
+code,kbd,pre,samp,tt {
+	font-family: "Courier New", Courier, monospace;
+}
+
+/* 统一等宽字体 */
+small {
+	font-size: 12px;
+}
+
+/* 重置列表元素 */
+ul,ol {
+	list-style: none;
+}
+
+
+abbr[title],acronym[title] {
+	border-bottom: 1px dotted;
+	cursor: help;
+}
+
+fieldset,img {
+	border: none;
+}
+
+button,input,select,textarea {
+	font-size: 100%;
+}
+
+/* 重置表格元素 */
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+/* 重置 hr */
+hr {
+	border: none;
+	height: 1px;
+}
+
+body {
+	-moz-user-select: none;
+	/*火狐*/
+	-webkit-user-select: none;
+	/*webkit浏览器*/
+	-ms-user-select: none;
+	/*IE10*/
+	-khtml-user-select: none;
+	/*早期浏览器*/
+	user-select: none;
+}
+
+a,a:link,a:visited,a:hover,a:active {
+	text-decoration: none;
+	color: inherit;
+}
+
+input {
+	background: none;
+	outline: none;
+	border: none;
+}
+
+button{
+	border: none;
+}
+body, html {
+    position: relative;
+    height: 100%;
+    font: 14px/16px Roboto,sans-serif;
+    color: #666;
+}
+
+.hide{
+	display: none;
+}
+
+#tag-edit-add{
+	cursor: pointer;
+}

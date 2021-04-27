@@ -1,0 +1,48 @@
+div#animation{
+	width: 100vw;
+	height: 100%;
+	position: absolute;
+}
+
+#cube{
+	width: 400px;
+	height: 400px;
+	position: relative;
+	left: calc(50% - 200px);
+	top: calc(50% - 200px);
+	transform: rotateX(50deg) rotateY(50deg) rotateZ(0deg) translate3d(0px,0px,0px);
+	transform-style: preserve-3d;
+}
+
+.plane{
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	background-size: cover;
+	object-fit: cover;
+}
+
+.plane:nth-child(1){
+	transform: rotateX(90deg) rotateY(0deg) rotateZ(0deg) translate3d(0px,200px,-200px);
+	background: url(../img/pic_01.jpg);
+}
+.plane:nth-child(2){
+	transform: rotateX(90deg) rotateY(0deg) rotateZ(0deg) translate3d(0px,200px,200px);
+	background: url(../img/pic_02.jpg);
+}
+.plane:nth-child(3){
+	transform: rotateX(0deg) rotateY(90deg) rotateZ(0deg) translate3d(-200px,0px,-200px);
+	background: url(../img/pic_03.jpg);
+}
+.plane:nth-child(4){
+	transform: rotateX(0deg) rotateY(90deg) rotateZ(0deg) translate3d(-200px,0px,200px);
+	background: url(../img/pic_04.jpeg);
+}
+.plane:nth-child(5){
+	transform: rotateX(0deg) rotateY(0deg) rotateZ(90deg) translate3d(0px,0px,0px);
+	background: url(../img/pic_05.jpeg);
+}
+.plane:nth-child(6){
+	transform: rotateX(0deg) rotateY(0deg) rotateZ(90deg) translate3d(0px,0px,400px);
+	background: url(../img/pic_06.jpg);
+}

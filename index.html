@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>主页</title>
+		<link rel="icon" href="favicon.ico" type="image/x-icon" />
+		<link rel="SHORTCUT ICON" href="favicon.ico" type="image/x-icon" />
+		<link rel="stylesheet" type="text/css" href="css/index.css" />
+		<link rel="stylesheet" type="text/css" href="css/common.css" />
+		<link rel="stylesheet" type="text/css" href="css/theme1.css" />
+		<link rel="stylesheet" type="text/css" href="css/bubble.css" />
+		<link href="./css/PNotifyBrightTheme.css" rel="stylesheet" type="text/css" />
+		<link href="./css/magnific-popup.css" rel="stylesheet" type="text/css" />
+		<link href="./css/avgrund.css" rel="stylesheet" type="text/css" />
+		<link href="./css/todolist.css" rel="stylesheet" type="text/css" />
+
+		<script type="text/javascript" src="js/jquery.3.4.1.js"></script>
+		<script type="text/javascript" src="./js/PNotify.js"></script>
+		<script type="text/javascript" src="./js/PNotifyButtons.js"></script>
+		<script type="text/javascript" src="./js/PNotifyConfirm.js"></script>
+		<script type="text/javascript" src="./js/avgrund.js"></script>
+		<script type="text/javascript" src="./js/layer.js"></script>
+		<script type="text/javascript" src="./js/jquery.magnific-popup.js"></script>
+
+		<script type="text/javascript" src="js/index.js"></script>
+		<script type="text/javascript" src="js/common.js"></script>
+		<script type="text/javascript">
+			//参数声明区域
+			const switcher = "userTagSwitch";
+			const tags = "userTags";
+			const wallpaper = "userWallpaper";
+			const picName = "userPicName";
+			const picIndex = "userPicIndex";
+			const is_search = "userIsSearch";
+			const defaultPicName = "latest.jpg";
+			const perPage = 9;
+			var setting, //菜单按钮的div
+				setting_btn, //菜单按钮
+				menu, //菜单内容div
+				menu_list, //菜单列表
+				cancel_btn, //返回按钮
+				user_img, //用户头像
+				tag_edit, //书签编辑页面div
+				tag_checkbox, //开关书签栏按钮
+				tag_list, //书签列表div
+				tag_edit_btn, //书签编辑按钮
+				search_input,
+				wallpaper_edit,
+				wallpaper_checkbox,
+				today_str,
+				img_urls,
+				img_div,
+				timer,
+				search_result,
+				search_checkbox
+			foo = 'this.src="./img/default.gif"'; //默认图片
+
+			$(document).ready(function() {
+				setting = $("#setting-div");
+				setting_btn = $("#setting-div svg");
+				menu = $("#menu-div");
+				menu_list = $("#menu-div ul");
+				cancel_btn = $("#menu-div svg");
+				user_img = $("#menu-div img");
+				tag_edit = $("#tag-more-div");
+				tag_checkbox = $("#tag-checkbox");
+				tag_list = $("#tag-div");
+				tag_edit_btn = $("#label-btn");
+				search_input = $("#search-input");
+				wallpaper_checkbox = $("#wallpaper-checkbox");
+				wallpaper_edit = $("#choose-btn");
+				img_div = $("#choose-img-div");
+				search_result = $("#search-result");
+				today_str = getTimeStr() + ".jpg";
+				search_checkbox = $("#search-checkbox");
+
+				//初始化页面
+				getBgPicList("");
+				set_background(defaultPicName);
+				initPage();
+				//事件绑定等处理
+				/**
+				 * 去除书签编辑栏中书签的链接
+				 */
+				$(".item-edit a").each(function(e) {
+					$(this).removeAttr("href");
+				});
+				/**
+				 * 菜单按钮的点击事件
+				 */
+				$("#setting-div svg").click(openMenu);
+				/**
+				 * 关闭菜单按钮的点击事件
+				 */
+				cancel_btn.click(closeMenu);
+				$("#user").click(function() {
+					Avgrund.show("#login-div");
+				});
+				/**
+				 * 书签编辑按钮的点击事件
+				 */
+				tag_edit_btn.click(function() {
+					Avgrund.show("#tag-more-div");
+				});
+				/**
+				 * 书签栏编辑-删除按钮点击事件
+				 */
+				$(".item-edit svg").click(function(e) {
+					delTag(e)
+				});
+				/**
+				 * 书签栏编辑-添加按钮点击事件
+				 */
+				$("#tag-edit-add").click(function(e) {
+					layer.open({
+						type: 1,
+						title: false,
+						closeBtn: 0,
+						area: ['400px', '300px'],
+						shadeClose: false,
+						btnAlign: 'c',
+						content: $("#tag-input-div"),
+						btn: ['添加', '取消'], //按钮
+						anim: 1,
+						btn1: function() {
+							click_confirm();
+						},
+						btn2: function(index, layero) {
+							$("#tag-name").val("");
+							$("#tag-url").val("");
+						}
+					});
+					$("#tag-name").focus();
+					var index = close = layer.index;
+					$(document).bind("keydown", func = function(e) {
+						if (e.keyCode == 13) {
+							click_confirm();
+						}
+					});
+
+					function click_confirm() {
+						if (layer.index > index) {
+							layer.close(layer.index);
+							index++;
+							return;
+						}
+						var name = $("#tag-name").val();
+						var url = $("#tag-url").val();
+						if (name.trim() == "" || url.trim() == "") {
+							layer.alert(
+								"标签名称和链接不能为空！", {
+									btn: ['确认'],
+									btn1: function() {
+										layer.close(layer.index);
+										index++;
+									}
+								}
+							);
+							return;
+						}
+						if (url.indexOf("http://") !== 0 && url.indexOf("https://") !== 0)
+							url = "http://" + url;
+						var span = createNewTag(name, url, 2);
+						$("#tag-edit-add").before(span);
+						$("#tag-name").val("");
+						$("#tag-url").val("");
+						layer.close(close);
+						$(document).unbind("keydown", func);
+					}
+				});
+				/**
+				 * 显示搜索框按钮
+				 */
+				search_checkbox.click(function(e) {
+					if ($(e.target).prop("checked")) {
+						$("#search-div").css("display", "block");
+						localStorage.setItem(is_search, 1);
+					} else {
+						$("#search-div").css("display", "none");
+						localStorage.setItem(is_search, 0);
+					}
+				});
+				/**
+				 * 开启关闭书签栏按钮事件绑定
+				 */
+				tag_checkbox.click(function(e) {
+					if ($(e.target).prop("checked")) {
+						tag_edit_btn.css("display", "inline");
+						tag_list.css("display", "flex");
+						localStorage.setItem(switcher, 1);
+						noticeAddTags();
+					} else {
+						tag_edit_btn.css("display", "none");
+						tag_list.css("display", "none");
+						localStorage.setItem(switcher, 0);
+					}
+				});
+				/**
+				 * 开启关闭使用必应每日壁纸
+				 */
+				wallpaper_checkbox.click(function(e) {
+					if ($(e.target).prop("checked")) {
+						wallpaper_edit.css("display", "none");
+						localStorage.setItem(wallpaper, 1);
+						set_background(defaultPicName);
+						localStorage.removeItem(picName);
+					} else {
+						wallpaper_edit.css("display", "inline");
+						localStorage.setItem(wallpaper, 0);
+						localStorage.setItem(picName, today_str);
+					}
+				});
+				/**
+				 * 选择背景图片按钮点击事件
+				 */
+				wallpaper_edit.click(function() {
+					if (img_div.children().length <= 1) {
+						createBgView();
+					}
+					Avgrund.show("#choose-img-div");
+				});
+				/**
+				 * 选择图片下拉到底部事件
+				 */
+				img_div.scroll(function() {
+					scrollHeight = $(this)[0].scrollHeight;
+					scrollTop = $(this)[0].scrollTop;
+					divHeight = img_div.height();
+					if (scrollTop + divHeight >= (scrollHeight - 60)) {
+						createBgView()
+					}
+				});
+				/**
+				 * 上传本地图片作为背景图片
+				 */
+				$("#avatarSlect").change(function(e) {
+					var obj = e.target.files[0];
+					var fr = new FileReader();
+					fr.onload = function() {
+						$("#avatarPreview").attr('src', this.result);
+					};
+					fr.readAsDataURL(obj);
+					// .准备FormData
+					var fd = new FormData();
+					fd.append("file", obj);
+					// 创建xhr对象
+					var xhr = new XMLHttpRequest();
+					xhr.onreadystatechange = function() {
+						if (xhr.readyState == 4 && xhr.status == 200) {
+							var url = xhr.responseText
+							if (!url.includes("失败")) {
+								set_background(url);
+								localStorage.setItem(picName, url)
+							}
+						}
+					}
+					xhr.open('POST', '/api/file/uploadImg', true);
+					xhr.send(fd);
+				})
+				/**
+				 * 底部点击事件绑定
+				 */
+				$("#footer-div").click(function(e) {
+					var about = $("#about")
+					if (about.css("display") === "none") {
+						about.css({
+							"display": "flex",
+							"background-color": getRandomColor(160),
+						});
+						window.scrollTo(0, e.pageY);
+					} else {
+						about.css("display", "none");
+					}
+				});
+				/**
+				 * 标签拖动排序的事件绑定
+				 */
+				tag_edit.bind("drop", function(e) {
+					e.preventDefault();
+					var data = e.originalEvent.dataTransfer.getData("span");
+					var span = $("#" + data);
+					if (getSpan(e.target) && getSpan(e.target) != 'div') {
+						getSpan(e.target).before(span);
+						$(".item-edit").css({
+							"padding-left": "18px",
+						});
+						$("#tag-edit-add").css({
+							"padding-left": "18px",
+						});
+					}
+				});
+				tag_edit.bind("dragover", function(e) {
+					e.preventDefault();
+					var ele = getSpan(e.target)
+					if (ele && ele != "div") {
+						$("#tag-edit-add").css({
+							"padding-left": "18px",
+						});
+						$(".item-edit").css({
+							"padding-left": "18px",
+						});
+						getSpan(e.target).css({
+							"padding-left": "120px",
+						});
+					} else if (ele == "div") {
+						$(".item-edit").css({
+							"padding-left": "18px",
+						});
+						$("#tag-edit-add").css({
+							"padding-left": "18px",
+						});
+					}
+				});
+
+				/**
+				 * 输入时触发搜索建议
+				 */
+				search_input.bind("keyup", function(event) {
+					if (!search_input.val() || search_input.val().trim().length === 0) {
+						hideSug();
+						clearContent();
+						return;
+					}
+					/*当键盘按下上下键的时候，不进行监听，否则会与keyup事件起冲突*/
+					if (event.keyCode == 38 || event.keyCode == 40) {
+						return false;
+					}
+					if (timer) {
+						clearTimeout(timer)
+					}
+					var value = search_input.val();
+					timer = setTimeout(function() {
+						sug(value)
+						showSug()
+					}, 500)
+
+				});
+
+
+
+				/**
+				 * ··点击推荐项跳转搜索
+				 */
+				$("#search-div").bind("click", function(e) {
+					closeMenu()
+					event.stopPropagation();
+					if (e.target.nodeName.toLowerCase() === 'li') {
+						var keywords = e.target.innerText;
+						search_input.val(keywords);
+						submitAction();
+					}
+				});
+				/**
+				 * 监听键盘上下
+				 */
+				var i = 0,
+					flag = 1;
+				$("#search-div").bind("keydown", function(e) {
+					var size = search_result.children().length;
+					// 键盘向下事件
+					if (e.keyCode === 40) {
+						if (flag === 0) {
+							i = i + 2;
+						}
+						flag = 1;
+						e.preventDefault();
+						if (i >= size) {
+							i = 0;
+						}
+						if (i < size) {
+							checkItem(search_result.children()[i])
+							search_input.val(search_result.children()[i++].innerText);
+						}
+					};
+					// 键盘向上事件
+					if (e.keyCode === 38) {
+						if (flag === 1) {
+							i = i - 2;
+						}
+						flag = 0;
+						e.preventDefault();
+						if (i < 0) {
+							i = size - 1;
+						}
+						if (i > -1) {
+							checkItem(search_result.children()[i])
+							search_input.val(search_result.children()[i--].innerText);
+						}
+					};
+				});
+				/**
+				 * 点击其他地方隐藏提示框
+				 */
+				$("body").click(function() {
+					hideSug()
+				});
+				/**
+				 * 搜索框获得焦点时如果提示框不空就展示
+				 */
+				search_input.bind("focus", function() {
+					if ($("#search-result li").length > 0) {
+						showSug()
+					}
+				});
+
+			});
+		</script>
+	</head>
+	<body>
+		<div id="body-div">
+			<div id="setting-div">
+				<svg t="1585493382162" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="23740"
+				 width="64" height="64">
+					<path d="M279.272727 232.727273m15.965446 0l558.545454 0q15.965446 0 15.965446 15.965446l0 0q0 15.965446-15.965446 15.965446l-558.545454 0q-15.965446 0-15.965446-15.965446l0 0q0-15.965446 15.965446-15.965446Z"
+					 fill="black" p-id="23741"></path>
+					<path d="M279.272727 465.454545m15.965446 0l558.545454 0q15.965446 0 15.965446 15.965446l0 0q0 15.965446-15.965446 15.965446l-558.545454 0q-15.965446 0-15.965446-15.965446l0 0q0-15.965446 15.965446-15.965446Z"
+					 fill="black" p-id="23743"></path>
+					<path d="M279.272727 698.181818m15.965446 0l558.545454 0q15.965446 0 15.965446 15.965446l0 0q0 15.965446-15.965446 15.965446l-558.545454 0q-15.965446 0-15.965446-15.965446l0 0q0-15.965446 15.965446-15.965446Z"
+					 fill="black" p-id="23745"></path>
+				</svg>
+			</div>
+			<div id="menu-div">
+				<span id="user">
+					<img src="./img/user-default.gif">
+				</span>
+				<ul class="mui-table-view">
+
+					<li class="mui-table-view-cell">
+						<div id="btn-div">
+							<label class="">显示搜索框</label>
+							<div>
+								<input class="switch" type="checkbox" id="search-checkbox" checked="" name="wallpaper-checkbox">
+							</div>
+						</div>
+					</li>
+					<li class="mui-table-view-cell">
+						<div id="btn-div">
+							<label class="">开启书签栏</label>
+							<div id="">
+								<input class="switch" type="checkbox" id="tag-checkbox" checked="" name="tag-checkbox">
+								<button id="label-btn" class="menu-btn" type="button">编辑</button>
+							</div>
+						</div>
+					</li>
+					<li class="mui-table-view-cell">
+						<div id="btn-div">
+							<label class="">使用必应每日壁纸</label>
+							<div>
+								<input class="switch" type="checkbox" id="wallpaper-checkbox" checked="" name="wallpaper-checkbox">
+							</div>
+							<button style="display: none;" id="choose-btn" class="menu-btn" type="button">选择</button>
+						</div>
+					</li>
+
+				</ul>
+				<svg t="1585498346931" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="21316"
+				 width="48" height="48">
+					<path d="M259.885 202.966l571.281 591.346-33.136 32.01-571.282-591.344 33.137-32.012z m0 0" fill="#000000" p-id="21317"></path>
+					<path d="M192.343 794.917l577.413-599.986 33.196 31.952-577.415 599.982-33.194-31.948z m0 0" fill="#000000" p-id="21318"></path>
+					<path d="M220.712 219.766c0 12.871 10.435 23.306 23.306 23.306 12.876 0 23.311-10.435 23.311-23.306 0-12.876-10.435-23.311-23.311-23.311-12.871 0.001-23.306 10.436-23.306 23.311z m0 0M762.936 210.77a23.297 23.297 0 0 0 11.651 20.184 23.302 23.302 0 0 0 23.311 0 23.305 23.305 0 0 0 0-40.371 23.302 23.302 0 0 0-23.311 0 23.303 23.303 0 0 0-11.651 20.187z m0 0"
+					 fill="#000000" p-id="21319"></path>
+					<path d="M790.717 809.396a23.303 23.303 0 0 0 11.655 20.183 23.29 23.29 0 0 0 23.307 0 23.309 23.309 0 0 0 0-40.37 23.29 23.29 0 0 0-23.307 0 23.309 23.309 0 0 0-11.655 20.187z m0 0M184.853 812.059c0 12.876 10.435 23.311 23.311 23.311 12.871 0 23.306-10.435 23.306-23.311 0-12.871-10.435-23.306-23.306-23.306-12.876 0-23.311 10.435-23.311 23.306z m0 0"
+					 fill="#000000" p-id="21320"></path>
+				</svg>
+			</div>
+			<div id="search-div">
+				<form id="form1" action="http://www.baidu.com/baidu" onkeydown="if(event.keyCode==13) return submitAction();">
+					<input list="suggestList" tabindex="0" id="search-input" name="word" maxlength="100" type="text" class="mui-input-clear"
+					 placeholder="Search..." autocomplete="off">
+					<div class="suggest">
+						<ul id="search-result">
+						</ul>
+					</div>
+				</form>
+				<!-- <datalist id="suggestList"></datalist> -->
+			</div>
+			<div id="tag-div">
+
+			</div>
+			<div id="todolist-div">
+				<header>
+					<section>
+						<form action="javascript:postaction()" id="form">
+							<label for="title">ToDoList</label>
+							<input type="text" id="title" name="title" placeholder="添加ToDo" required="required" autocomplete="off" />
+						</form>
+					</section>
+				</header>
+				<section class="task">
+					<h2 onclick="save()">正在进行 <span id="todocount"></span></h2>
+					<ol id="todolist" class="demo-box">
+					</ol>
+					<h2>已经完成 <span id="donecount"></span></h2>
+					<ul id="donelist">
+					</ul>
+				</section>
+			</div>
+			<script type="text/javascript" src="js/todolist.js"></script>
+
+			<div id="login-div" class="avgrund-popup">
+				<h1>Login</h1>
+				<div class="login-form-input">
+					<svg t="1584438199604" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1291"
+					 width="16" height="16">
+						<path d="M607.5 395m-237 0a237 237 0 1 0 474 0 237 237 0 1 0-474 0Z" fill="#F1F3EA" opacity=".3" p-id="862"></path>
+						<path d="M512 0c92.136674 0 175.526196 37.321185 235.589977 97.384966s97.384966 143.453303 97.384966 235.589977-37.321185 175.526196-97.384966 235.589977-143.453303 97.384966-235.589977 97.384966-175.526196-37.321185-235.589977-97.384966-97.384966-143.453303-97.384966-235.589977 37.321185-175.526196 97.384966-235.589977S419.863326 0 512 0z m183.107062 149.867882c-46.651481-46.651481-111.963554-75.808656-183.107062-75.808656-71.726651 0-136.455581 29.157175-183.107062 75.808656S253.084282 261.831435 253.084282 332.974943c0 71.726651 29.157175 136.455581 75.808656 183.107062s111.963554 75.808656 183.107062 75.808656c71.726651 0 136.455581-29.157175 183.107062-75.808656s75.808656-111.963554 75.808656-183.107062c0-71.726651-29.157175-136.455581-75.808656-183.107061z"
+						 p-id="1292" fill="#F75C3E"></path>
+						<path d="M71.726651 1022.833713c2.915718-119.544419 53.066059-227.425968 132.373577-304.984055s187.77221-125.375854 307.899772-125.375854c119.544419 0 228.009112 47.817768 307.899772 125.375854 79.307517 77.558087 130.041002 185.439636 132.373577 304.984055l-73.476082 1.166287c-2.332574-99.134396-44.318907-188.938497-110.214123-253.667426s-156.28246-104.382688-256-104.382688-190.104784 39.653759-256 104.382688c-66.47836 64.728929-107.881549 153.949886-110.214123 253.667426l-73.476083-1.166287z"
+						 p-id="1293" fill="#F75C3E"></path>
+					</svg>
+					<input type="text" name="username" id="username" placeholder="Username" />
+				</div>
+				<div class="login-form-input">
+					<svg t="1584438293131" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1491"
+					 width="16" height="16">
+						<path d="M607.5 395m-237 0a237 237 0 1 0 474 0 237 237 0 1 0-474 0Z" fill="#F1F3EA" opacity=".3" p-id="862"></path>
+						<path d="M798.009168 333.286182h-12.070727v-59.683039C785.938441 122.719057 663.219384 0 512.335298 0S238.732155 122.719057 238.732155 273.603143v59.683039h-12.070727C154.237066 333.286182 95.895219 392.298625 95.895219 464.05239v428.510806c0 72.424361 59.012443 130.766208 130.766209 130.766208h571.34774c72.424361 0 130.766208-59.012443 130.766209-130.766208V464.05239c0-72.424361-59.012443-130.766208-130.766209-130.766208z m-488.193844-59.683039c0-111.989522 90.530452-202.519974 202.519974-202.519973s202.519974 90.530452 202.519974 202.519973v59.683039H309.815324v-59.683039z m547.876883 618.960053c0 16.094303-6.035363 30.847413-17.435494 42.247544s-26.153242 17.435494-42.247545 17.435494H226.661428c-16.094303 0-30.847413-6.035363-42.247545-17.435494s-17.435494-26.153242-17.435494-42.247544V464.05239c0-32.859201 26.823838-59.683039 59.683039-59.683038h571.34774c16.094303 0 30.847413 6.035363 42.247545 17.435494s17.435494 26.153242 17.435494 42.247544v428.510806z"
+						 p-id="1492" fill="#F75C3E"></path>
+						<path d="M511.664702 547.876883c-19.447282 0-35.541585 16.094303-35.541585 35.541585v190.449246c0 19.447282 16.094303 35.541585 35.541585 35.541585s35.541585-16.094303 35.541585-35.541585V583.418468c0-19.447282-16.094303-35.541585-35.541585-35.541585z"
+						 p-id="1493" fill="#F75C3E"></path>
+					</svg>
+					<input type="password" name="password" id="password" placeholder="Password" />
+				</div>
+				<button type="button" id="login-form-login-button">登录</button>
+			</div>
+			<div id="tag-more-div" class="avgrund-popup">
+				<span class="tag-item" id="tag-edit-add">
+					<a></a>
+					<svg t="1585481642733" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3102"
+					 width="48" height="48">
+						<path d="M988.689655 501.406897H35.310345c-10.593103 0-17.655172-7.062069-17.655173-17.655173s7.062069-17.655172 17.655173-17.655172h953.37931c10.593103 0 17.655172 7.062069 17.655173 17.655172s-7.062069 17.655172-17.655173 17.655173z"
+						 fill="#000000" p-id="3103"></path>
+						<path d="M483.751724 1006.344828c-10.593103 0-17.655172-7.062069-17.655172-17.655173V35.310345c0-10.593103 7.062069-17.655172 17.655172-17.655173s17.655172 7.062069 17.655173 17.655173v953.37931c0 10.593103-10.593103 17.655172-17.655173 17.655173z"
+						 fill="#000000" p-id="3104"></path>
+					</svg>
+				</span>
+
+			</div>
+			<div id="choose-img-div" class="avgrund-popup">
+				<span class="" id="choose-local-img-span">
+					<input id="avatarSlect" name="file" type="file" accept="image/*" style="position: absolute;float: left; z-index: 10; opacity: 0;width: 240px; height: 135px;">
+					<label style="position: absolute; float: left; z-index: 8;font-size: 18ox;top: 95px;left: 90px;">点击上传本地图片</label>
+					<img id="avatarPreview" style="background-color: #77DDCC; z-index: 9; width: 240px; height:135px">
+				</span>
+			</div>
+			<div id="tag-input-div" style="display: none;">
+				<div class="tag-input">
+					<svg t="1585734537939" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6785"
+					 width="26" height="26">
+						<path d="M835.4 590.8h-50.6l0.1 276.5c0 2.4-0.1 3.7-0.3 4.5-1.3 0-2.6-0.3-3.1-0.5L541 728.3c-2.1-1.2-13.4-7.3-28.2-7.3-13.5 0-23.9 4.9-27.8 7.1L241.6 872h-0.2c-0.5-0.5-0.7-1.3-0.8-1.6V173.6c0-34 27-61.6 60.1-61.6h423.8c33.1 0 60.1 27.6 60.1 61.6v67.5h50.6v-67.5c0-62.4-49.7-113.2-110.7-113.2H300.7c-61 0-110.7 50.8-110.7 113.2V958l6.2-2.6c41.6-17.7 298.9-173.5 312.9-182 0.5-0.2 2.1-0.8 3.5-0.8 0.9 0 2.2 0.3 3.5 0.7 11.1 6.6 249.6 149 312.8 181.9l6.5 3.4V590.8z m0 0"
+						 fill="#F75C3E" p-id="6786"></path>
+						<path d="M712.6 579.4V453.6h122.8V402H712.6V276.3H662V402H539.2v51.6H662v125.7h50.6z m0 0" fill="#F75C3E" p-id="6787"></path>
+					</svg>
+					<input type="text" name="tag-name" id="tag-name" placeholder="标签名称" />
+				</div>
+				<div class="tag-input">
+					<svg t="1585734404216" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4772"
+					 width="26" height="26">
+						<path d="M512.4 859.7c-191.7 0-347.7-156-347.7-347.7s156-347.7 347.7-347.7 347.7 156 347.7 347.7-156 347.7-347.7 347.7z m0-632.2c-156.9 0-284.5 127.6-284.5 284.5s127.6 284.5 284.5 284.5S796.9 668.9 796.9 512 669.3 227.5 512.4 227.5z"
+						 fill="#F75C3E" p-id="4773"></path>
+						<path d="M218.7 732.5c-114.6 0-199.9-25.2-216-85.3-15.5-57.7 37.2-122.2 152.2-186.6 15.2-8.4 34.5-3.1 43 12.2 8.5 15.2 3.1 34.5-12.2 43-97.4 54.6-126.4 98.7-122 115 10 37.4 187.7 67.7 477.8-10.1 125.1-33.5 238.6-79.1 319.4-128.4 86.2-52.6 102.8-89.6 99.5-101.9-3-11.1-26-26.6-81.1-34.3-17.3-2.4-29.4-18.3-27-35.6 2.4-17.3 18.7-29 35.6-27 77.2 10.7 122.1 37.8 133.5 80.5 9.9 37-4.2 96.9-127.7 172.2-85.7 52.5-205 100.6-335.8 135.7-117.7 31.6-239.5 50.6-339.2 50.6z"
+						 fill="#F75C3E" p-id="4774"></path>
+					</svg>
+					<input type="text" name="tag-url" id="tag-url" placeholder="网站地址" />
+				</div>
+			</div>
+			<div id="footer-div">
+				Powered by @jieen 2020.04.02 <a href="http://www.beian.miit.gov.cn" target="_blank">皖ICP备20005751号-1</a>
+			</div>
+			<div id="about">
+				<div id="about-content">
+					<p>本站是一个人站点，作者最近很迷网站设计，所以就搭建了这个站点，
+						这个页面是设计用来做浏览器主页的，如果很喜欢页面效果的话，可以收藏并设置为浏览器主页。
+						作者也会经常更新站点主题，有好的设计想法时就会做一做并更新上来。
+						这个页面的登录功能还没做，现在所有功能都是前端实现的，不过已经可以正常使用，等有空了就把后端部分补上，准备实现个简单的填写信息登录的过程，
+						保存一些书签和其他设置。
+						最近还是网页设计的兴趣更多一点，所以可能一段时间内并不会做后端的东西。
+						本人初级后端程序员，技术方面还有很多学习的东西，这个站点之后也会更新一些个人的学习内容，这就当做是这个首页发布的介绍吧。<br />
+						QQ：413343998</p>
+				</div>
+			</div>
+		</div>
+		<div class="avgrund-cover"></div>
+		<svg t="1585498346931" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="21316"
+		 width="0" height="0" style="display: none;" id="svg-hidden">
+			<path d="M259.885 202.966l571.281 591.346-33.136 32.01-571.282-591.344 33.137-32.012z m0 0" fill="#000000" p-id="21317"></path>
+			<path d="M192.343 794.917l577.413-599.986 33.196 31.952-577.415 599.982-33.194-31.948z m0 0" fill="#000000" p-id="21318"></path>
+			<path d="M220.712 219.766c0 12.871 10.435 23.306 23.306 23.306 12.876 0 23.311-10.435 23.311-23.306 0-12.876-10.435-23.311-23.311-23.311-12.871 0.001-23.306 10.436-23.306 23.311z m0 0M762.936 210.77a23.297 23.297 0 0 0 11.651 20.184 23.302 23.302 0 0 0 23.311 0 23.305 23.305 0 0 0 0-40.371 23.302 23.302 0 0 0-23.311 0 23.303 23.303 0 0 0-11.651 20.187z m0 0"
+			 fill="#000000" p-id="21319"></path>
+			<path d="M790.717 809.396a23.303 23.303 0 0 0 11.655 20.183 23.29 23.29 0 0 0 23.307 0 23.309 23.309 0 0 0 0-40.37 23.29 23.29 0 0 0-23.307 0 23.309 23.309 0 0 0-11.655 20.187z m0 0M184.853 812.059c0 12.876 10.435 23.311 23.311 23.311 12.871 0 23.306-10.435 23.306-23.311 0-12.871-10.435-23.306-23.306-23.306-12.876 0-23.311 10.435-23.311 23.306z m0 0"
+			 fill="#000000" p-id="21320"></path>
+		</svg>
+	</body>
+</html>
